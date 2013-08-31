@@ -1,0 +1,5 @@
+target/
+.ensime
+.ensime_lucene/
+conf/application.conf
+project

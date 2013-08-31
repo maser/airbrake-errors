@@ -1,0 +1,4 @@
+airbrake-errors {
+    airbrake-account = "your-account-name"
+    airbrake-auth-token = "your-auth-token"
+}
