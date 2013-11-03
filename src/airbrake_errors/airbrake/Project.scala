@@ -1,4 +1,5 @@
 package airbrake_errors.airbrake_api
+import scala.concurrent.Future
 
 /** Project
   *
@@ -18,5 +19,9 @@ object Project extends XmlHelper {
       extractBigIntFromXml(xml, "id"),
       extractFromXml(xml, "name")
     )
+  }
+
+  def all(implicit client: ApiClient): Future[Seq[Project]] = {
+    client.projects
   }
 }

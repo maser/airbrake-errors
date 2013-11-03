@@ -1,5 +1,6 @@
 package airbrake_errors.airbrake_api
 import org.joda.time.DateTime
+import scala.concurrent.Future, scala.concurrent.ExecutionContext.Implicits.global
 
 class Error (
   private val client: ApiClient,
@@ -17,8 +18,11 @@ class Error (
     client.project(projectId)
   }
 
-  def notices(page: Int = 0) = {
-    client.notices(id, page)
+  def notices(where: Notice ⇒ Boolean): Future[Seq[Notice]] = {
+    val r = for {
+      results ← client.notices(id, _.forall(where))
+    } yield results.filter(where)
+    r
   }
 }
 
@@ -36,5 +40,10 @@ object Error extends XmlHelper {
       noticesCount = extractIntFromXml(xml, "notices-count"),
       projectId = extractIntFromXml(xml, "project-id")
     )
+  }
+
+  def where(where: Error ⇒ Boolean)(implicit client: ApiClient): Future[Seq[Error]] = {
+    val showResolved = true
+    client.errors(showResolved, _.forall(where))
   }
 }

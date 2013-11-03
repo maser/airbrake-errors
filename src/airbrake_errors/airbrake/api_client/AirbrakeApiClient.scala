@@ -10,18 +10,16 @@ trait ApiClient {
 
   def hostName = account + "." + domain
 
-  def errors(page: Int = 0, showResolved: Boolean = false) = {
+  def errors(showResolved: Boolean = false, continue: Seq[Error] ⇒ Boolean): Future[Seq[Error]] = {
+    errorsForPage()
+  }
+
+  def errorsForPage(page: Int = 0, showResolved: Boolean = false) = {
     for {
       xml ← errorsXml(page, showResolved)
     } yield for {
       group <- xml \\ "group"
     } yield Error.fromXml(this, group)
-  }
-
-  def allErrors(maxPage: Int = 2, showResolved: Boolean = false) = {
-    val pages = for (page <- 0 to maxPage) yield errors(page, showResolved)
-    for (pageRequests <- Future.sequence(pages))
-    yield pageRequests.flatten
   }
 
   def errorsXml(page: Int = 0, showResolved: Boolean = false) = {
@@ -55,7 +53,26 @@ trait ApiClient {
     } yield allProjects.find(_.id == projectId)
   }
 
-  def notices(errorId: BigInt, page: Int = 0) = {
+  def notices(errorId: BigInt, continue: Seq[Notice] ⇒ Boolean): Future[Seq[Notice]] = {
+    val results = List[Notice]()
+    rnotices(errorId, 0, results, continue)
+  }
+
+  private def rnotices(errorId: BigInt, page: Int, results: Seq[Notice], continue: Seq[Notice] ⇒ Boolean): Future[Seq[Notice]] = {
+    if (continue(results)) {
+      noticesForPage(errorId, page) flatMap { newResults ⇒
+        if (newResults.isEmpty)
+          Future.successful(results)
+        else
+          rnotices(errorId, page + 1, results ++ newResults, continue)
+      }
+    } else {
+      println(s"aborting on page $page")
+      Future.successful(results)
+    }
+  }
+
+  def noticesForPage(errorId: BigInt, page: Int = 0): Future[Seq[Notice]] = {
     for {
       xml <- noticesXml(errorId, page)
     } yield for {
