@@ -60,7 +60,7 @@ trait ApiClient {
       xml <- noticesXml(errorId, page)
     } yield for {
       notice <- xml \\ "notice"
-    } yield Notice.fromXml(this, notice)
+    } yield Notice.fromXml(this, errorId, notice)
   }
 
   def noticesXml(errorId: BigInt, page: Int = 0) = {

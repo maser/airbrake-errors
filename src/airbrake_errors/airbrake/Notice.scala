@@ -5,17 +5,17 @@ class Notice (
   private val client: ApiClient,
   val id: BigInt,
   val createdAt: DateTime,
-  val groupId: Int,
+  val errorId: BigInt,
   val projectId: Int
 )
 
 object Notice extends XmlHelper {
-  def fromXml(client: ApiClient, xml: scala.xml.Node) = {
+  def fromXml(client: ApiClient, errorId: BigInt, xml: scala.xml.Node) = {
     new Notice(
       client = client,
       id = extractBigIntFromXml(xml, "id"),
       createdAt = extractDateFromXml(xml, "created-at"),
-      groupId = extractIntFromXml(xml, "group-id"),
+      errorId = errorId,
       projectId = extractIntFromXml(xml, "project-id")
     )
   }
